@@ -10,9 +10,9 @@ app.secret_key = 'mi_clave_secreta_biblioteca'
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Guardar imágenes directamente en static
+STATIC_FOLDER = os.path.join(app.root_path, 'static')
+app.config['UPLOAD_FOLDER'] = STATIC_FOLDER
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -28,6 +28,94 @@ def obtener_conexion():
     except Error as e:
         print(f"Error de conexión a la BD: {e}")
         return None
+
+# ==========================================
+# POBLADO Y VERIFICACIÓN DE DATOS DEMO
+# ==========================================
+def asegurar_datos_demo():
+    """Asegura que existan categorías, autores y libros basados en el script SQL."""
+    conexion = obtener_conexion()
+    if not conexion or not conexion.is_connected():
+        return
+
+    cursor = conexion.cursor(dictionary=True)
+    try:
+        # 1. Categorías
+        categorias_demo = [
+            ("Acción y Aventura",),
+            ("Terror y Suspenso",),
+            ("Ciencia Ficción",),
+            ("Historia y Biografías",),
+            ("Matemáticas y Ciencias",),
+            ("Infantil y Juvenil",),
+            ("Cómics y Manga",),
+            ("Literatura Clásica",)
+        ]
+        cursor.executemany(
+            "INSERT IGNORE INTO categorias (nombre) VALUES (%s)", 
+            categorias_demo
+        )
+
+        # 2. Autores
+        autores_demo = [
+            ("Antoine de Saint-Exupéry", "uploads/elprincito.webp"),
+            ("Gabriel García Márquez", "uploads/cienaños.webp"),
+            ("Stephen King", "uploads/default_autor.jpg"),
+            ("J.K. Rowling", "uploads/default_autor.jpg"),
+            ("Michael Crichton", "uploads/default_autor.jpg"),
+            ("Vegetta777 y Willyrex", "uploads/default_autor.jpg"),
+            ("Marvel / Panini Comics", "uploads/default_autor.jpg"),
+            ("Kentaro Miura", "uploads/default_autor.jpg"),
+            ("George Orwell", "uploads/default_autor.jpg"),
+            ("Natalia y Mayden", "uploads/default_autor.jpg")
+        ]
+        cursor.executemany(
+            "INSERT IGNORE INTO autores (nombre_autor, foto_perfil) VALUES (%s, %s)", 
+            autores_demo
+        )
+        conexion.commit()
+
+        # 3. Mapear IDs dinámicamente
+        cursor.execute("SELECT id_categoria, nombre FROM categorias")
+        cats = {row['nombre']: row['id_categoria'] for row in cursor.fetchall()}
+
+        cursor.execute("SELECT id_autor, nombre_autor FROM autores")
+        auts = {row['nombre_autor']: row['id_autor'] for row in cursor.fetchall()}
+
+        # 4. Verificar presencia de libros
+        cursor.execute("SELECT COUNT(*) as total FROM libros")
+        total_libros = cursor.fetchone()['total']
+
+        if total_libros < 5:
+            libros_a_insertar = [
+                ('El Principito', 'Un viaje poético sobre la infancia y la amistad.', 8, 'uploads/elprincito.webp', cats.get('Acción y Aventura'), auts.get('Antoine de Saint-Exupéry')),
+                ('Cien Años de Soledad', 'La saga familiar de los Buendía en Macondo.', 5, 'uploads/cienaños.webp', cats.get('Literatura Clásica'), auts.get('Gabriel García Márquez')),
+                ('IT (Eso)', 'Un grupo de niños enfrenta a una entidad maligna en Derry.', 4, 'uploads/9788497593793.jpg', cats.get('Terror y Suspenso'), auts.get('Stephen King')),
+                ('Harry Potter y la Piedra Filosofal', 'El inicio de las aventuras del joven mago.', 9, 'uploads/ee23df3a67f6f27ab8645debc9f6d5e3.jpg', cats.get('Infantil y Juvenil'), auts.get('J.K. Rowling')),
+                ('Parque Jurásico', 'Un parque temático con dinosaurios clonados se sale de control tras una falla de seguridad.', 5, 'uploads/6866ada085d4f.jpeg', cats.get('Ciencia Ficción'), auts.get('Michael Crichton')),
+                ('Wigetta y el Báculo Dorado', 'Una aventura llena de misterio y realidad aumentada con Vegetta y Willyrex.', 8, 'uploads/71RAk23GX-L._SL1500_.jpg', cats.get('Infantil y Juvenil'), auts.get('Vegetta777 y Willyrex')),
+                ('Predator: La Etapa Original', 'Colección de cómics clásicos del cazador extraterrestre.', 4, 'uploads/91bLksEsWXL._SY522_.jpg', cats.get('Cómics y Manga'), auts.get('Marvel / Panini Comics')),
+                ('Berserk Vol. 30', 'Guts continúa su viaje enfrentando monstruosidades y fuerzas oscuras.', 3, 'uploads/91ReT4NNI0L._SL1500_.jpg', cats.get('Cómics y Manga'), auts.get('Kentaro Miura')),
+                ('1984', 'Novela distópica sobre el control estatal y la vigilancia constante del Gran Hermano.', 6, 'uploads/1984.jpg', cats.get('Literatura Clásica'), auts.get('George Orwell')),
+                ('Cómo sobrevivir a un apocalipsis zombi con ExpCaseros', 'Guía práctica e ilustrada con experimentos y consejos para salir con vida.', 7, 'uploads/9788427045514.webp', cats.get('Infantil y Juvenil'), auts.get('Natalia y Mayden')),
+                ('El Arte de Berserk', 'Recopilación del arte técnico e ilustraciones del universo creado por Kentaro Miura.', 2, 'uploads/berserk.webp', cats.get('Cómics y Manga'), auts.get('Kentaro Miura'))
+            ]
+            
+            query = """
+                INSERT INTO libros (titulo, descripcion, stock, imagen_portada, id_categoria, id_autor)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            cursor.executemany(query, libros_a_insertar)
+            conexion.commit()
+
+    except Error as e:
+        print(f"Error verificando datos demo: {e}")
+    finally:
+        cursor.close()
+        conexion.close()
+
+# Ejecutar verificación inicial de datos
+asegurar_datos_demo()
 
 # ==========================================
 # RUTA PRINCIPAL / CATÁLOGO DE LIBROS
@@ -46,15 +134,16 @@ def index():
     if conexion and conexion.is_connected():
         cursor = conexion.cursor(dictionary=True)
         try:
-            # 1. Categorías para la barra lateral
+            # 1. Categorías para el menú de filtros
             cursor.execute("SELECT id_categoria, nombre FROM categorias ORDER BY nombre ASC")
             categorias = cursor.fetchall()
 
             # 2. Búsqueda y filtrado dinámico de libros
             query_libros = """
-                SELECT l.*, a.nombre_autor AS autor 
+                SELECT l.*, a.nombre_autor AS autor, c.nombre AS categoria_nombre 
                 FROM libros l 
                 LEFT JOIN autores a ON l.id_autor = a.id_autor 
+                LEFT JOIN categorias c ON l.id_categoria = c.id_categoria
                 WHERE 1=1
             """
             params_libros = []
@@ -70,6 +159,11 @@ def index():
             query_libros += " ORDER BY l.id_libro DESC"
             cursor.execute(query_libros, params_libros)
             libros = cursor.fetchall()
+
+            # Sanitizado de rutas de imagen para compatibilidad con url_for('static', ...)
+            for libro in libros:
+                if libro.get('imagen_portada'):
+                    libro['imagen_portada'] = libro['imagen_portada'].replace('uploads/', '')
 
         except Error as e:
             print(f"Error en consulta index: {e}")
@@ -278,18 +372,18 @@ def agregar_libro():
         id_categoria = request.form.get('id_categoria')
 
         try:
-            stock = min(int(stock), 10)
+            stock = min(max(0, int(stock)), 10)
         except ValueError:
             stock = 0
 
         imagen = request.files.get('imagen_portada')
-        nombre_imagen = 'uploads/default_libro.jpg'
+        nombre_imagen = 'default_libro.jpg'
 
         if imagen and imagen.filename != '':
             filename = secure_filename(imagen.filename)
             ruta_guardado = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             imagen.save(ruta_guardado)
-            nombre_imagen = f"uploads/{filename}"
+            nombre_imagen = filename
 
         conexion = obtener_conexion()
         if conexion and conexion.is_connected():

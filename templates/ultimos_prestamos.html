@@ -5,97 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Últimos Préstamos | Biblioteca Virtual Escolar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .font-serif-custom { font-family: 'Merriweather', serif; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=4.0">
 </head>
-<body class="bg-amber-50/40 text-stone-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-body-custom flex flex-col min-h-screen">
 
-    <div>
-        <header class="bg-amber-900 text-amber-50 shadow-md border-b border-amber-950/20">
-            <div class="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <a href="{{ url_for('index') }}" class="text-2xl font-bold tracking-tight font-serif-custom hover:text-amber-200 transition-colors">
-                        Biblioteca Virtual Escolar
-                    </a>
-                </div>
-                <div>
-                    <a href="{{ url_for('index') }}" class="inline-flex items-center text-xs font-semibold bg-amber-800 hover:bg-amber-700 text-amber-100 px-4 py-2 rounded-lg transition-colors border border-amber-700">
-                        ← Volver al Catálogo
-                    </a>
-                </div>
+    <!-- Header Transparente Superior -->
+    <header class="main-header">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
+            
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 shrink-0">
+                <a href="{{ url_for('index'  ) }}" class="text-xl font-medium tracking-tight text-amber-950 hover:text-amber-700 transition-colors">
+                    Biblioteca<span class="font-normal text-amber-800/60">Escolar</span>
+                </a>
             </div>
-        </header>
+            
+            <!-- Acciones Superior -->
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('index') }}" class="text-xs font-medium text-amber-900 hover:bg-amber-100/60 px-4 py-2 rounded-full transition-all">
+                    ← Volver al Catálogo
+                </a>
+            </div>
+        </div>
+    </header>
 
-        <main class="max-w-7xl mx-auto px-6 py-8">
-            <section class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 sm:p-8">
-                
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-stone-100 gap-2">
-                    <div>
-                        <h1 class="text-2xl font-bold text-stone-900 font-serif-custom">Últimos Préstamos Registrados</h1>
-                        <p class="text-xs text-stone-500 mt-1">Historial reciente de los últimos 10 libros retirados por los alumnos.</p>
-                    </div>
-                    <span class="inline-flex items-center bg-amber-100 text-amber-900 text-xs font-semibold px-3 py-1 rounded-full">
-                        Registro de Biblioteca
-                    </span>
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl mx-auto px-6 py-10 w-full">
+        
+        <!-- Tarjeta Principal de Tabla -->
+        <section class="book-card border border-amber-200/70 p-6 sm:p-8 shadow-sm">
+            
+            <!-- Encabezado de la Sección -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-amber-100 gap-3">
+                <div>
+                    <h1 class="text-2xl font-semibold text-amber-950">Últimos Préstamos Registrados</h1>
+                    <p class="text-xs text-amber-800/70 mt-1 font-medium">Historial reciente de los últimos 10 libros retirados por los alumnos.</p>
                 </div>
+                <span class="inline-flex items-center bg-amber-100/80 text-amber-950 text-xs font-medium px-3.5 py-1.5 rounded-full border border-amber-200/60">
+                    Registro de Biblioteca
+                </span>
+            </div>
 
-                <div class="overflow-x-auto rounded-lg border border-stone-200">
-                    <table class="w-full text-sm text-left text-stone-700">
-                        <thead class="bg-amber-900 text-amber-50 text-xs uppercase font-semibold tracking-wider">
-                            <tr>
-                                <th scope="col" class="px-6 py-3.5">Libro</th>
-                                <th scope="col" class="px-6 py-3.5">Alumno</th>
-                                <th scope="col" class="px-6 py-3.5">DNI</th>
-                                <th scope="col" class="px-6 py-3.5">Fecha Retiro</th>
-                                <th scope="col" class="px-6 py-3.5">Devolución Estimada</th>
+            <!-- Tabla de Préstamos -->
+            <div class="overflow-x-auto rounded-xl border border-amber-200/60">
+                <table class="w-full text-xs text-left text-amber-950">
+                    <thead class="bg-amber-100/60 text-amber-950 uppercase font-semibold tracking-wider border-b border-amber-200/60">
+                        <tr>
+                            <th scope="col" class="px-6 py-4">Libro</th>
+                            <th scope="col" class="px-6 py-4">Alumno</th>
+                            <th scope="col" class="px-6 py-4">DNI</th>
+                            <th scope="col" class="px-6 py-4">Fecha Retiro</th>
+                            <th scope="col" class="px-6 py-4">Devolución Estimada</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-100 bg-white/70">
+                        {% for p in prestamos %}
+                            <tr class="hover:bg-amber-50/50 transition-colors">
+                                <td class="px-6 py-4 font-semibold text-amber-950">
+                                    {{ p.libro_titulo }}
+                                </td>
+                                <td class="px-6 py-4 font-medium text-amber-900">
+                                    {{ p.alumno_completo }}
+                                </td>
+                                <td class="px-6 py-4 text-amber-800/70 font-mono text-[11px]">
+                                    {{ p.alumno_dni }}
+                                </td>
+                                <td class="px-6 py-4 text-amber-900/80">
+                                    {{ p.fecha_retiro.strftime('%d/%m/%Y') if p.fecha_retiro.strftime is defined else p.fecha_retiro }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold text-rose-700">
+                                    {{ p.fecha_limite_devolucion.strftime('%d/%m/%Y') if p.fecha_limite_devolucion.strftime is defined else p.fecha_limite_devolucion }}
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody class="divide-y divide-stone-200 bg-white">
-                            {% for p in prestamos %}
-                                <tr class="hover:bg-amber-50/50 transition-colors">
-                                    <td class="px-6 py-4 font-bold text-stone-900 font-serif-custom">
-                                        {{ p.libro_titulo }}
-                                    </td>
-                                    <td class="px-6 py-4 font-medium text-stone-800">
-                                        {{ p.alumno_completo }}
-                                    </td>
-                                    <td class="px-6 py-4 text-stone-500 font-mono text-xs">
-                                        {{ p.alumno_dni }}
-                                    </td>
-                                    <td class="px-6 py-4 text-stone-600">
-                                        {{ p.fecha_retiro.strftime('%d/%m/%Y') if p.fecha_retiro.strftime is defined else p.fecha_retiro }}
-                                    </td>
-                                    <td class="px-6 py-4 font-semibold text-rose-700">
-                                        {{ p.fecha_limite_devolucion.strftime('%d/%m/%Y') if p.fecha_limite_devolucion.strftime is defined else p.fecha_limite_devolucion }}
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-stone-500 bg-stone-50">
-                                        No hay préstamos registrados actualmente en el sistema.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-amber-800/60 bg-amber-50/30">
+                                    No hay préstamos registrados actualmente en el sistema.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-            </section>
-        </main>
-    </div>
+        </section>
+    </main>
 
-    <footer class="bg-amber-950 text-amber-200/80 mt-12 border-t border-amber-900">
-        <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between text-xs gap-4">
+    <!-- Footer -->
+    <footer class="border-t border-amber-200/80 mt-auto text-amber-800/70 text-xs bg-white/60">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p>&copy; 2026 Biblioteca Virtual Escolar. Todos los derechos reservados.</p>
             <div class="flex space-x-6">
-                <a href="#" class="hover:text-amber-100 transition-colors">Reglamento de Préstamos</a>
-                <a href="#" class="hover:text-amber-100 transition-colors">Contacto Biblioteca</a>
+                <a href="#" class="hover:text-amber-950 transition-colors">Reglamento de Préstamos</a>
+                <a href="#" class="hover:text-amber-950 transition-colors">Contacto Biblioteca</a>
             </div>
         </div>
     </footer>
 
 </body>
-</html>
+</html> 

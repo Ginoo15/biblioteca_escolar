@@ -5,90 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitar Préstamo | Biblioteca Virtual Escolar</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .font-serif-custom { font-family: 'Merriweather', serif; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=4.0">
 </head>
-<body class="bg-amber-50/40 text-stone-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-body-custom flex flex-col min-h-screen">
 
-    <div>
-        <header class="bg-amber-900 text-amber-50 shadow-md border-b border-amber-950/20">
-            <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-                <a href="{{ url_for('index') }}" class="text-2xl font-bold tracking-tight font-serif-custom hover:text-amber-200 transition-colors">
-                    Biblioteca Virtual Escolar
+    <!-- Header Transparente Superior -->
+    <header class="main-header">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-6">
+            
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 shrink-0">
+                <a href="{{ url_for('index') }}" class="text-xl font-medium tracking-tight text-amber-950 hover:text-amber-700 transition-colors">
+                    Biblioteca<span class="font-normal text-amber-800/60">Escolar</span>
                 </a>
-                <a href="{{ url_for('index') }}" class="text-xs font-semibold bg-amber-800 hover:bg-amber-700 text-amber-100 px-4 py-2 rounded-lg transition-colors border border-amber-700">
+            </div>
+            
+            <!-- Botón para volver al catálogo -->
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('index') }}" class="text-xs font-medium text-amber-900 hover:bg-amber-100/60 px-4 py-2 rounded-full transition-all">
                     ← Volver al Catálogo
                 </a>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="max-w-2xl mx-auto px-6 py-10">
-            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-8">
-                <div class="mb-6 pb-4 border-b border-stone-100">
-                    <h1 class="text-2xl font-bold text-stone-900 font-serif-custom">Registrar Nuevo Préstamo</h1>
-                    <p class="text-xs text-stone-500 mt-1">Selecciona el alumno, el libro a retirar y la fecha límite de devolución.</p>
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-2xl mx-auto px-6 py-12 w-full flex flex-col justify-center">
+        
+        <!-- Tarjeta del Formulario -->
+        <div class="book-card border border-amber-200/70 p-8 shadow-sm">
+            
+            <!-- Encabezado de la Tarjeta -->
+            <div class="mb-6 pb-4 border-b border-amber-100">
+                <h1 class="text-2xl font-semibold text-amber-950">Registrar Nuevo Préstamo</h1>
+                <p class="text-xs text-amber-800/70 mt-1 font-medium">Selecciona el alumno, el libro a retirar y la fecha límite de devolución.</p>
+            </div>
+
+            <!-- Mensajes Flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-5 text-xs rounded-xl p-3.5 text-center font-medium border {% if category == 'error' %}bg-rose-50 border-rose-200 text-rose-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-800{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Formulario -->
+            <form action="{{ url_for('solicitar_prestamo') }}" method="POST" class="space-y-5">
+                
+                <!-- Selección de Alumno / Usuario -->
+                <div>
+                    <label class="block text-xs font-semibold text-amber-900/80 uppercase tracking-wider mb-2">Alumno / Usuario</label>
+                    <select name="id_usuario" required class="w-full px-4 py-2.5 text-xs bg-amber-50/40 border border-amber-200/80 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-amber-950">
+                        <option value="">Selecciona un alumno...</option>
+                        {% for u in usuarios %}
+                            <option value="{{ u.id_usuario }}" {% if session.get('id_usuario') == u.id_usuario %}selected{% endif %}>
+                                {{ u.nombre_completo }} (DNI: {{ u.dni }})
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="mb-5 text-xs rounded-lg p-3 text-center border {% if category == 'error' %}bg-rose-50 border-rose-200 text-rose-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-700{% endif %}">
-                                {{ message }}
-                            </div>
+                <!-- Selección de Libro -->
+                <div>
+                    <label class="block text-xs font-semibold text-amber-900/80 uppercase tracking-wider mb-2">Libro</label>
+                    <select name="id_libro" required class="w-full px-4 py-2.5 text-xs bg-amber-50/40 border border-amber-200/80 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-amber-950">
+                        <option value="">Selecciona un libro disponible...</option>
+                        {% for l in libros %}
+                            <option value="{{ l.id_libro }}" {% if id_libro_preseleccionado and id_libro_preseleccionado|int == l.id_libro %}selected{% endif %}>
+                                {{ l.titulo }} (Disponibles: {{ l.stock }})
+                            </option>
                         {% endfor %}
-                    {% endif %}
-                {% endwith %}
+                    </select>
+                </div>
 
-                <form action="{{ url_for('solicitar_prestamo') }}" method="POST" class="space-y-5">
-                    
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase mb-2">Alumno / Usuario</label>
-                        <select name="id_usuario" required class="w-full px-4 py-2.5 text-sm bg-amber-50/50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-stone-800">
-                            <option value="">Selecciona un alumno...</option>
-                            {% for u in usuarios %}
-                                <option value="{{ u.id_usuario }}" {% if session.get('id_usuario') == u.id_usuario %}selected{% endif %}>
-                                    {{ u.nombre_completo }} (DNI: {{ u.dni }})
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <!-- Fecha Límite de Devolución -->
+                <div>
+                    <label class="block text-xs font-semibold text-amber-900/80 uppercase tracking-wider mb-2">Fecha Límite de Devolución</label>
+                    <input type="date" name="fecha_limite_devolucion" required class="w-full px-4 py-2.5 text-xs bg-amber-50/40 border border-amber-200/80 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-amber-950">
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase mb-2">Libro</label>
-                        <select name="id_libro" required class="w-full px-4 py-2.5 text-sm bg-amber-50/50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-stone-800">
-                            <option value="">Selecciona un libro disponible...</option>
-                            {% for l in libros %}
-                                <option value="{{ l.id_libro }}" {% if id_libro_preseleccionado and id_libro_preseleccionado|int == l.id_libro %}selected{% endif %}>
-                                    {{ l.titulo }} (Disponibles: {{ l.stock }})
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <!-- Botones de Acción -->
+                <div class="pt-4 flex items-center justify-end space-x-3">
+                    <a href="{{ url_for('index') }}" class="px-5 py-2.5 text-xs font-medium text-amber-900 bg-amber-100/50 hover:bg-amber-100 rounded-full transition-colors">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="request-btn px-6 py-2.5 !w-auto text-xs font-semibold rounded-full shadow-sm">
+                        Confirmar Préstamo
+                    </button>
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 uppercase mb-2">Fecha Límite de Devolución</label>
-                        <input type="date" name="fecha_limite_devolucion" required class="w-full px-4 py-2.5 text-sm bg-amber-50/50 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-stone-800">
-                    </div>
+            </form>
+        </div>
+    </main>
 
-                    <div class="pt-4 flex items-center justify-end space-x-3">
-                        <a href="{{ url_for('index') }}" class="px-5 py-2.5 text-xs font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors">
-                            Cancelar
-                        </a>
-                        <button type="submit" class="px-6 py-2.5 text-xs font-semibold text-amber-50 bg-amber-900 hover:bg-amber-800 rounded-lg transition-colors shadow-sm">
-                            Confirmar Préstamo
-                        </button>
-                    </div>
-
-                </form>
-            </div>
-        </main>
-    </div>
-
-    <footer class="bg-amber-950 text-amber-200/80 mt-12 border-t border-amber-900">
-        <div class="max-w-7xl mx-auto px-6 py-6 text-center text-xs">
+    <!-- Footer -->
+    <footer class="border-t border-amber-200/80 mt-auto text-amber-800/70 text-xs bg-white/60">
+        <div class="max-w-7xl mx-auto px-6 py-6 text-center">
             <p>&copy; 2026 Biblioteca Virtual Escolar. Todos los derechos reservados.</p>
         </div>
     </footer>
